@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { response } = require("express");
 const Post = require("../models/Post");
+const User = require("../models/User")
 
 //create psot
 router.post("/", async (req, res) => {
@@ -52,24 +53,39 @@ router.put("/:id/like", async (req, res) => {
       await post.updateOne({ $pull: { likes: req.body.userId } });
       res.status(200).json("you disliked this post");
     }
-  } catch(err) {
-      console.log(err)
+  } catch (err) {
+    console.log(err);
     res.status(404).json(err);
   }
 });
 //get a post
-router.get("/:id",async (req, res) => {
-    try{
-        const post = await Post.findById(req.params.id)
-        res.status(200).json(post)
-
-    }catch(error){
-        console.log(error)
-        res.status(404).json(error)
-    }
-  });
+router.get("/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    res.status(200).json(post);
+  } catch (error) {
+    console.log(error);
+    res.status(404).json(error);
+  }
+});
 // get all posts
 //GET TIMELINE PSOTS
+router.get("/timeline/all", async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.body.userId);
+    console.log(currentUser)
+    const userPosts = await Post.find({ userId: currentUser._id });
+    const friendPost = await Promise.all(
+      currentUser.following.map((friend) => {
+        return Post.find({ userId: friend });
+      })
+    );
+    res.json(userPosts.concat(...friendPost));
+  } catch (err) {
+    res.status(404).json(err);
+    console.log(err)
+  }
+});
 router.get("/", (req, res) => {
   console.log("Post page");
 });
