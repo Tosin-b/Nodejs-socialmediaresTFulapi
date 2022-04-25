@@ -2,7 +2,7 @@ const router = require("express").Router();
 const User = require("../models/User");
 const bycryt = require("bcrypt");
 const { response } = require("express");
-router.get("/cool", (req, res) => {
+router.get("/", (req, res) => {
   res.send("helloow word");
 });
 
@@ -39,6 +39,9 @@ router.post("/login", async (req, res) => {
       user.password
     );
     !validPassword && res.status(404).send("Wrong password");
+
+    res.status(200).json(user)
+
   } catch (err) {
     console.log(err);
     res.status(500)

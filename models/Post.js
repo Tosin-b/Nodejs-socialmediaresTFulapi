@@ -10,12 +10,13 @@ const PostSchema = new mongooose.Schema(
       type: String,
       max: 500,
     },
-    img: {
-      type: String,
-    },
+  
     likes: {
       type: Array,
       default: [],
+    },
+    img:{
+      type: String,
     },
   },
   { timestamps: true }

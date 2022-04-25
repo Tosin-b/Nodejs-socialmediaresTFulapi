@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { response } = require("express");
 const Post = require("../models/Post");
-const User = require("../models/User")
+const User = require("../models/User");
 
 //create psot
 router.post("/", async (req, res) => {
@@ -25,6 +25,7 @@ router.put("/:id", async (req, res) => {
       res.status(403).res("you can only update your own posts");
     }
   } catch (err) {
+    console.log(err);
     res.status(500).json(err);
   }
 });
@@ -49,7 +50,7 @@ router.put("/:id/like", async (req, res) => {
     if (!post.likes.includes(req.body.userId)) {
       await post.updateOne({ $push: { likes: req.body.userId } });
       res.status(200).json("you like this post");
-    } else {
+    } else if (post.likes.includes(req.body.userId)) {
       await post.updateOne({ $pull: { likes: req.body.userId } });
       res.status(200).json("you disliked this post");
     }
@@ -70,20 +71,36 @@ router.get("/:id", async (req, res) => {
 });
 // get all posts
 //GET TIMELINE PSOTS
-router.get("/timeline/all", async (req, res) => {
+router.get("/timeline/:userId", async (req, res) => {
   try {
-    const currentUser = await User.findById(req.body.userId);
-    console.log(currentUser)
+    const currentUser = await User.findById(req.params.userId);
     const userPosts = await Post.find({ userId: currentUser._id });
+    console.log(userPosts);
     const friendPost = await Promise.all(
       currentUser.following.map((friend) => {
         return Post.find({ userId: friend });
       })
     );
-    res.json(userPosts.concat(...friendPost));
+    console.log(friendPost);
+
+    res.status(200).json(userPosts.concat(...friendPost));
+    //console.log(userPosts.concat(...friendPost))
   } catch (err) {
     res.status(404).json(err);
-    console.log(err)
+    console.log(err);
+  }
+});
+// get all users posts
+router.get("/profile/:username", async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.params.username });
+    //console.log(user)
+    const posts = await Post.find({ userId: user._id });
+    console.log(posts)
+
+    res.status(200).json(posts)
+  } catch (err) {
+    res.status(500).json(err);
   }
 });
 router.get("/", (req, res) => {
